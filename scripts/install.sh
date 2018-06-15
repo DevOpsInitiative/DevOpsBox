@@ -109,7 +109,7 @@ fi
 if [ ${REDHAT_BASED} ] ; then
   yum install -y git
 else 
-  apt-get install -y git
+  apt-get install -y git/opt/softwareag
 fi
 
 #jenkins
@@ -124,12 +124,26 @@ if [ ${REDHAT_BASED} ] ; then
   wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat/jenkins.repo
   rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
   yum install -y jenkins
+  systemctl start jenkins
 else 
   wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
   echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list
   apt-get update
   apt-get install -y jenkins
+  
 fi
+
+#Integration Server
+mkdir /opt/softwareag
+chown jenkins:jenkins /opt/softwareag
+chmod 777 /opt/softwareag
+usermod -s /bin/bash jenkins
+
+su - jenkins -c "java -jar /vagrant/scripts/SoftwareAGInstaller.jar -readImage /vagrant/scripts/is_rhel_x86-64.zip  -readScript /vagrant/scripts/is_install.script"
+/opt/softwareag/bin/afterInstallAsRoot.sh
+su - jenkins -c "/opt/softwareag/profiles/IS_default/bin/startup.sh"
+
+echo "****** Jenkins Initial Admin Pwd: "`sudo cat /var/lib/jenkins/secrets/initialAdminPassword`" ******"
 
 # clean up
 if [ ! ${REDHAT_BASED} ] ; then
