@@ -99,10 +99,10 @@ enabled=1
 gpgcheck=1
 gpgkey=https://dl.google.com/linux/linux_signing_key.pub
 EOF
-  yum install -y google-chrome-stable xorg-x11-xauth
+  yum install -y google-chrome-stable xorg-x11-xauth gtk2.x86_64
 else 
   echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main"  > /etc/apt/sources.list.d/google-chrome.list
-  apt-get install -y google-chrome-stable xorg-x11-xauth
+  apt-get install -y google-chrome-stable xorg-x11-xauth gtk2.x86_64
 fi
 
 #git
@@ -112,38 +112,23 @@ else
   apt-get install -y git/opt/softwareag
 fi
 
-#jenkins
+#java
 if [ ${REDHAT_BASED} ] ; then
-  yum install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel
+  yum install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel http://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/c/cabextract-1.5-1.el7.x86_64.rpm https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm
 else
-  apt-get install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel
+  apt-get install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel http://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/c/cabextract-1.5-1.el7.x86_64.rpm https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm
 fi
   
-#jenkins
-if [ ${REDHAT_BASED} ] ; then
-  wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat/jenkins.repo
-  rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
-  yum install -y jenkins
-  systemctl start jenkins
-else 
-  wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
-  echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list
-  apt-get update
-  apt-get install -y jenkins
-  
-fi
-
 #Integration Server
 mkdir /opt/softwareag
-chown jenkins:jenkins /opt/softwareag
+chown vagrant:vagrant /opt/softwareag
 chmod 777 /opt/softwareag
-usermod -s /bin/bash jenkins
 
-su - jenkins -c "java -jar /vagrant/scripts/SoftwareAGInstaller.jar -readImage /vagrant/scripts/is_rhel_x86-64.zip  -readScript /vagrant/scripts/is_install.script"
+su - vagrant -c "java -jar /vagrant/scripts/SoftwareAGInstaller.jar -readImage /vagrant/scripts/is_designer_rhel_x86-64.zip  -readScript /vagrant/scripts/is_designer_install.script"
 /opt/softwareag/bin/afterInstallAsRoot.sh
-su - jenkins -c "/opt/softwareag/profiles/IS_default/bin/startup.sh"
+su - vagrant -c "/opt/softwareag/profiles/IS_default/bin/startup.sh"
 
-echo "****** Jenkins Initial Admin Pwd: "`sudo cat /var/lib/jenkins/secrets/initialAdminPassword`" ******"
+echo "****** SAG_HOME:                  /opt/softwareag                  ******"
 
 # clean up
 if [ ! ${REDHAT_BASED} ] ; then
